@@ -101,5 +101,5 @@ class ProfileAnalyzer:
 
 
 analyzer = ProfileAnalyzer(pdf_path='ak.pdf', api_key="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")
-response = analyzer.get_bot_response()#Add job decription in this function
+response = analyzer.get_bot_response()# Add job decription in this function
 print(response)
