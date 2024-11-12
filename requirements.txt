@@ -1,0 +1,11 @@
+gTTS
+numpy
+scipy
+sounddevice
+playsound
+speechrecognition
+transformers
+torch
+PyPDF2
+groq  
+
