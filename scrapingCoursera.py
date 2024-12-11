@@ -1,86 +1,74 @@
+import base64
 import requests
-import webbrowser
-from flask import Flask, request
+from urllib.parse import quote
 import os
+from dotenv import load_dotenv
 
-# Configuration
-CLIENT_ID = os.environ["COURSERA_CLIENT_ID"]
-CLIENT_SECRET = os.environ["COURSERA_CLIENT_SECRET"]
-REDIRECT_URI = "http://localhost:5000/callback"
-SCOPE = "view-profile"
+load_dotenv()
 
-# Flask app for handling the redirect
-app = Flask(__name__)
-authorization_code = None
+# Replace these with your actual credentials
+APP_KEY = os.environ["COURSERA_CLIENT_ID"]
+APP_SECRET = os.environ["COURSERA_CLIENT_SECRET"]
 
-@app.route("/callback")
-def callback():
-    global authorization_code
-    authorization_code = request.args.get("code")
-    return "Authorization code received! You can return to the terminal."
+def get_access_token(app_key, app_secret):
+    # Base64 encode the "key:secret" string
+    credentials = f"{app_key}:{app_secret}".encode("utf-8")
+    b64_credentials = base64.b64encode(credentials).decode("utf-8")
 
-# Step 1: Generate Authorization URL
-def generate_auth_url():
-    auth_url = (
-        f"https://accounts.coursera.org/oauth2/v1/auth?response_type=code"
-        f"&client_id={CLIENT_ID}"
-        f"&redirect_uri={REDIRECT_URI}"
-        f"&scope={SCOPE}"
-    )
-    return auth_url
-
-# Step 2: Exchange Authorization Code for Access Token
-def get_access_token(code):
-    token_url = "https://accounts.coursera.org/oauth2/v1/token"
-    payload = {
-        "grant_type": "authorization_code",
-        "code": code,
-        "redirect_uri": REDIRECT_URI,
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
+    url = "https://api.coursera.com/oauth2/client_credentials/token"
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Authorization": f"Basic {b64_credentials}"
     }
-    headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    response = requests.post(token_url, data=payload, headers=headers)
-    if response.status_code == 200:
-        return response.json()["access_token"]
-    else:
-        raise Exception(f"Failed to get access token: {response.status_code}, {response.text}")
+    data = {
+        "grant_type": "client_credentials"
+    }
 
-# Step 3: Fetch Courses
-def fetch_courses(access_token, query="Data Science", limit=5):
-    api_url = f"https://api.coursera.org/api/courses.v1?q=search&query={query}&limit={limit}"
+    response = requests.post(url, headers=headers, data=data)
+    if response.status_code == 200:
+        token_data = response.json()
+        return token_data.get("access_token")
+    else:
+        raise Exception(f"Failed to obtain access token: {response.status_code}, {response.text}")
+
+def search_courses(access_token, query="Data Science", limit=5):
+    search = quote(query)
+    api_url = "https://api.coursera.org/api/courses.v1"
+    params = {
+        "q": "search",
+        "query": search,
+        "limit": limit
+    }
     headers = {"Authorization": f"Bearer {access_token}"}
-    response = requests.get(api_url, headers=headers)
+
+    response = requests.get(api_url, headers=headers, params=params)
     if response.status_code == 200:
         return response.json()
     else:
-        raise Exception(f"Failed to fetch courses: {response.status_code}, {response.text}")
+        raise Exception(f"Failed to search courses: {response.status_code}, {response.text}")
 
 if __name__ == "__main__":
     try:
-        # Step 1: Generate and Open Authorization URL
-        auth_url = generate_auth_url()
-        print("Opening browser for authorization...\n")
-        print(f"If the browser doesn't open, go to this URL: {auth_url}\n")
-        webbrowser.open(auth_url)
+        # Step 1: Obtain Access Token
+        access_token = get_access_token(APP_KEY, APP_SECRET)
+        print("Access token obtained successfully.\n")
 
-        # Step 2: Start Flask App to Capture Authorization Code
-        print("Starting Flask server to capture authorization code...")
-        app.run(port=5000)
+        # Step 2: Search for courses
+        query = "data analysis"
+        limit = 5
+        print(f"Searching for courses with query: '{query}'...\n")
+        courses_data = search_courses(access_token, query=query, limit=limit)
 
-        # Step 3: Wait for Authorization Code
-        if authorization_code:
-            print(f"Authorization Code: {authorization_code}\n")
-
-            # Exchange Authorization Code for Access Token
-            print("Exchanging authorization code for access token...")
-            access_token = get_access_token(authorization_code)
-            print(f"Access Token: {access_token}\n")
-
-            # Fetch Courses
-            print("Fetching courses from Coursera API...")
-            courses = fetch_courses(access_token, query="Data Science", limit=5)
-            print("Courses:", courses)
+        # Display retrieved courses
+        elements = courses_data.get("elements", [])
+        if elements:
+            print("Courses Found:\n")
+            for course in elements:
+                name = course.get("name", "N/A")
+                slug = course.get("slug", "N/A")
+                print(f"{name}: https://coursera.org/learn/{slug}")
+        else:
+            print("No courses found for the given query.")
 
     except Exception as e:
         print("Error:", str(e))
