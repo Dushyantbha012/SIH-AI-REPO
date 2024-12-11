@@ -25,7 +25,7 @@ class InterviewAssistant:
         self.resume = self.extract_text_from_pdf(pdf_path)
 
         if not firebase_admin._apps:
-            cred = credentials.Certificate("/Users/arunkaul/Desktop/SIH-AI-REPO/SIH-AI-REPO/interviewdb-a0d0a-firebase-adminsdk-6pd7b-3c3998b007.json")
+            cred = credentials.Certificate("/Users/arunkaul/Desktop/SIH-AI-REPO/SIH-AI-REPO/interview_db.json")
             firebase_admin.initialize_app(cred)
         self.db = firestore.client()
 
