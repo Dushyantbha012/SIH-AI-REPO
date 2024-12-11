@@ -69,7 +69,7 @@ def find_courses(response):
             },
             {
                 "role": "user",
-                "content": f"{response} - For each checkpoint, suggest a course. In the output, only mention course names separated by commas do not write anything other than that write them in correct order in order of easy to advanced"
+                "content": f"{response} - For each checkpoint, suggest a course. In the output, only mention course names separated by commas do not write anything other than that write them in correct order in order of easy to advanced strictly follow the output format"
             }
         ],
         model="llama3-8b-8192",
