@@ -78,7 +78,7 @@ def find_courses(response):
     return chat_completion.choices[0].message.content
 
 
-response = get_bot_response(current="i am currently persuing a computer science degree", end_goal="I want to master DSA")
+response = get_bot_response(current="i am currently persuing a computer science degree", end_goal="I want to master machine learning")
 
 
 course_names_response = find_courses(response=response)
@@ -91,10 +91,8 @@ for i in course_names:
 
 course = {}
 for i in course_names:
-    trusted , untrusted = fetch_trusted_search_links(f"{i} coursera course", num_results=1)
+    trusted , untrusted = fetch_trusted_search_links(f"{i} coursera course or edx course or stanford course", num_results=1)
     if(len(trusted) == 1):
         course[i] = trusted
-    else:
-        course[i] = untrusted
 
 print(course)
