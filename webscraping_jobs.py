@@ -3,15 +3,49 @@ import requests
 from urllib.parse import urlparse
 
 TRUSTED_SITES = [
-    "linkedin.com", "indeed.com", "glassdoor.com", "monster.com", "careerbuilder.com",
-    "ziprecruiter.com", "remotive.io", "angel.co", "weworkremotely.com", "jobsearch.com",
-    "flexjobs.com", "remote.co", "remoteworkers.co", "workingnomads.co", "jobspresso.co",
-    "careerjet.com", "simplyhired.com", "jobvite.com", "hired.com", "theladders.com", 
-    "techcareers.com", "angel.co/jobs", "gitconnected.com", "upwork.com", "fiverr.com", 
-    "toptal.com", "freelancer.com", "monster.ca", "seek.com.au", "reed.co.uk", "jobstreet.com","glassdoor.co","naukri.com","nielit.gov.in"
+    "linkedin.com",
+    "indeed.com",
+    "glassdoor.com",
+    "monster.com",
+    "careerbuilder.com",
+    "ziprecruiter.com",
+    "remotive.io",
+    "angel.co",
+    "weworkremotely.com",
+    "jobsearch.com",
+    "flexjobs.com",
+    "remote.co",
+    "remoteworkers.co",
+    "workingnomads.co",
+    "jobspresso.co",
+    "careerjet.com",
+    "simplyhired.com",
+    "jobvite.com",
+    "hired.com",
+    "theladders.com",
+    "techcareers.com",
+    "angel.co/jobs",
+    "gitconnected.com",
+    "upwork.com",
+    "fiverr.com",
+    "toptal.com",
+    "freelancer.com",
+    "monster.ca",
+    "seek.com.au",
+    "reed.co.uk",
+    "jobstreet.com",
+    "glassdoor.co",
+    "naukri.com",
+    "nielit.gov.in",
 ]
 
-def fetch_trusted_search_links(query, output_trusted="trusted_search_links.txt", output_untrusted="untrusted_search_links.txt", num_results=10):
+
+def fetch_trusted_search_links(
+    query,
+    output_trusted="trusted_search_links.txt",
+    output_untrusted="untrusted_search_links.txt",
+    num_results=10,
+):
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36"
     }
@@ -49,28 +83,21 @@ def fetch_trusted_search_links(query, output_trusted="trusted_search_links.txt",
     print(f"Trusted links have been saved to '{output_trusted}'.")
     print(f"Untrusted links have been saved to '{output_untrusted}'.")
 
-    return trusted_links, untrusted_links
+    return trusted_links
 
-if __name__ == "__main__":
 
-    job_type = input("Enter Job Type (internship/private/govt): ").lower()
-    role = input("Enter Role: ")
-    location = input("Enter Job Location: ")
-    years = input("Enter years of experience: ")
+def get_links(job_type, role, location, years):
 
     if job_type == "internship":
         query = f"{role} internship posting with {location} location and {years} of experience required"
     elif job_type == "private":
         query = f"{role} private job posting with {location} location and {years} of experience required"
-    elif job_type == "govt":
+    elif job_type == "government":
         query = f"{role} government job posting in India with {location} location and {years} of experience required"
     else:
         print("Invalid job type. Please enter 'internship', 'private', or 'govt'.")
         exit(1)
 
-    trusted, untrusted = fetch_trusted_search_links(query, num_results=100)
-    
-    print("Trusted Links:")
-    print(trusted)
-    print("\nUntrusted Links:")
-    print(untrusted)
+    trusted = fetch_trusted_search_links(query, num_results=100)
+
+    return trusted
