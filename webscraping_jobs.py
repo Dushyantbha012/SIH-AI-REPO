@@ -37,6 +37,7 @@ TRUSTED_SITES = [
     "glassdoor.co",
     "naukri.com",
     "nielit.gov.in",
+    "aicte-india.org",
 ]
 
 
