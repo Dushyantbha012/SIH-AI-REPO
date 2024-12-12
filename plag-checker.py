@@ -7,7 +7,7 @@ load_dotenv()
 url = "https://api.gowinston.ai/v2/ai-content-detection"
 
 payload = {
-    "text": "Rain is a natural phenomenon where water droplets form in clouds and fall to the ground due to gravity. It is a vital part of the Earth's water cycle, replenishing freshwater sources and sustaining ecosystems. Rain cools the air, nourishes plants, and supports agriculture, making it essential for life. It can vary from gentle drizzles to heavy downpours, each having its impact on the environment and human activities. While rain is often welcomed for its life-giving properties, excessive rainfall can lead to flooding and other natural disasters. Its rhythmic sound and earthy aroma often evoke feelings of calmness and renewal.",
+    "text": "Hi, I am Dushyant Bhardwaj. I am a second year undergrad at Punjab Engineering College, Chandigarh. I live in Faridabad. I enjoy making web applications using frameworks such as ReactJS and NextJS. I have made advanced projects, which include a job platform which automates the hiring process and a clone of Discord which is also known as Piscord.",
     "version": "latest",
     "sentences": True,
     "language": "en"
