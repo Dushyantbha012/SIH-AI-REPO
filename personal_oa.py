@@ -40,6 +40,7 @@ def analyze_resume_and_generate_assignment(resume_text, job_description):
     2. 2 programming questions with a maximum difficulty of LeetCode medium, to be completed in 90 minutes.
     3. Development assessment based on the job description and resume.
 
+    Give all the three sections
     Don't give the answers to the questions.
 
     Specify a submission window of 16 hours from the time candidates view the development assessment.  
@@ -55,7 +56,7 @@ def analyze_resume_and_generate_assignment(resume_text, job_description):
             ],
             model="llama-3.1-8b-instant",
             temperature=0.7,
-            max_tokens=1000
+            max_tokens=5000
         )
 
         # Extract and return the raw response
