@@ -1,93 +1,101 @@
-from sentence_transformers import SentenceTransformer, util
-import fitz 
-from sklearn.feature_extraction.text import TfidfVectorizer
 import spacy
+from sentence_transformers import SentenceTransformer, util
+import fitz
+from concurrent.futures import ThreadPoolExecutor
 
 def pdf_to_text(pdf_path):
     doc = fitz.open(pdf_path)
     text = ""
-    
     for page_num in range(doc.page_count):
         page = doc[page_num]
         text += page.get_text()
-    
     doc.close()
     return text
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
-nlp = spacy.load('en_core_web_sm')
+model = SentenceTransformer("paraphrase-mpnet-base-v2")
+nlp = spacy.load("en_core_web_sm")
 
-def extract_keywords(text):
-    vectorizer = TfidfVectorizer(stop_words='english')
-    X = vectorizer.fit_transform([text])
-    keywords = vectorizer.get_feature_names_out()
-    return set(keywords)
-
-def calculate_keyword_match_score(job_keywords, resume_keywords):
-    intersection = len(job_keywords.intersection(resume_keywords))
-    union = len(job_keywords.union(resume_keywords))
-    return intersection / union if union != 0 else 0
-
-def extract_entities(text):
+def text_to_sentences(text):
     doc = nlp(text)
-    entities = {ent.text.lower() for ent in doc.ents if ent.label_ in ['ORG', 'GPE', 'PERSON', 'WORK_OF_ART', 'DATE', 'MONEY']}
-    return entities
+    sentences = [sent.text.strip() for sent in doc.sents if sent.text.strip()]
+    return sentences
 
-def calculate_entity_match_score(job_entities, resume_entities):
-    intersection = len(job_entities.intersection(resume_entities))
-    union = len(job_entities.union(resume_entities))
-    return intersection / union if union != 0 else 0
+def remove_stop_words(text):
+    doc = nlp(text)
+    return " ".join([token.text for token in doc if not token.is_stop])
 
-def calculate_similarity_score(job_description, resume_text):
-    # 1. Semantic Similarity using Sentence-BERT
-    job_embedding = model.encode(job_description, convert_to_tensor=True)
-    resume_embedding = model.encode(resume_text, convert_to_tensor=True)
-    semantic_similarity = util.cos_sim(job_embedding, resume_embedding).item()
-    
-    # 2. Keyword Matching using TF-IDF
-    job_keywords = extract_keywords(job_description)
-    resume_keywords = extract_keywords(resume_text)
-    keyword_match_score = calculate_keyword_match_score(job_keywords, resume_keywords)
-    
-    # 3. Named Entity Matching using NER
-    job_entities = extract_entities(job_description)
-    resume_entities = extract_entities(resume_text)
-    entity_match_score = calculate_entity_match_score(job_entities, resume_entities)
+def calculate_line_similarity(job_line, resume_lines):
+    job_embedding = model.encode(job_line, convert_to_tensor=True)
+    resume_embeddings = model.encode(resume_lines, convert_to_tensor=True)
+    similarities = util.cos_sim(job_embedding, resume_embeddings)
+    return similarities.max().item()
 
-    weight_semantic = 0.5
-    weight_keyword = 0.3
-    weight_entity = 0.2
-    
-    final_score = (weight_semantic * semantic_similarity +
-                   weight_keyword * keyword_match_score +
-                   weight_entity * entity_match_score)
-    
-    return {
-        'semantic_similarity': semantic_similarity,
-        'keyword_match_score': keyword_match_score,
-        'entity_match_score': entity_match_score,
-        'final_comprehensive_score': final_score
-    }
+def calculate_max_line_similarity_parallel(job_description_lines, resume_lines):
+    max_similarities = []
+    with ThreadPoolExecutor() as executor:
+        results = list(executor.map(
+            lambda job_line: calculate_line_similarity(job_line, resume_lines),
+            job_description_lines
+        ))
+        max_similarities.extend(results)
+    return max_similarities
 
-job_description = """
-As an AI intern at Wastelink, you'll have the opportunity to work on cutting-edge solutions. Your role will involve using your knowledge of artificial intelligence and machine learning to develop innovative tools and algorithms that will contribute to our sustainability efforts.
+job_description = """Key Responsibilities
+Risk Assessment & Analysis:
 
-You will work on designing and implementing computer vision algorithms to detect and identify objects and extract specific data from them.
+Conduct regular assessments to identify vulnerabilities in the organization's networks, systems, and applications.
+Develop strategies to mitigate identified risks.
+Monitoring & Incident Response:
 
-Responsibilities include building a prototype, data annotation, model training using frameworks like TensorFlow or PyTorch, and integration with warehouse management systems.
+Monitor network traffic for unusual activity and respond to cybersecurity incidents promptly.
+Investigate breaches, document incidents, and perform root cause analysis.
+Security Implementation:
 
-This is an excellent opportunity to gain hands-on experience in AI and machine learning, contributing to the automation and efficiency of our warehousing processes.
+Deploy and maintain firewalls, intrusion detection systems (IDS), and endpoint protection solutions.
+Configure security policies, ensuring compliance with industry standards and regulations.
+Training & Awareness:
 
-If you are a passionate and driven individual with a strong background in AI and machine learning, this internship at Wastelink is the perfect opportunity to gain hands-on experience and make a real impact in the field of sustainable waste management. Apply now and join us in shaping a cleaner and greener future!
+Educate employees about cybersecurity best practices and the importance of data security.
+Develop training materials and conduct workshops to promote a security-conscious culture.
+Compliance & Documentation:
 
-About Company: Wastelink is a food surplus management company that helps food manufacturers manage their surplus and waste by transforming it into nutritional feeds for animals. Our mission is to supercharge the circular economy and eliminate food waste.
+Ensure adherence to legal and regulatory requirements such as GDPR, CCPA, HIPAA, or ISO 27001.
+Maintain up-to-date documentation on security policies, protocols, and procedures.
+Threat Intelligence:
 
-We process thousands of tons of food surplus into high-energy feed ingredients trusted by the world's leading feed brands while providing food manufacturers with a truly sustainable way of managing their waste.
-Desired Skills and Experience
-Machine Learning, Artificial Intelligence, Data Science, Deep Learning, Data Structures
-"""
+Stay updated with the latest cyber threats, vulnerabilities, and technologies.
+Recommend and implement advanced tools and methods to enhance security.
+Key Qualifications:
+Educational Background: Bachelor’s degree in Computer Science, Information Technology, Cybersecurity, or related field. (Master’s preferred)
+Certifications: Industry-recognized certifications like CISSP, CISM, CEH, CompTIA Security+, or similar.
+Experience:
+Minimum of [X years] of experience in cybersecurity or a related role.
+Hands-on experience with penetration testing, vulnerability management tools, and SIEM solutions.
+Technical Skills:
+Proficiency in tools like Wireshark, Metasploit, or Nessus.
+Knowledge of programming/scripting languages like Python, Java, or PowerShell.
+Familiarity with cloud security (AWS, Azure, GCP) and endpoint protection systems.
+Experience with security frameworks like NIST, MITRE ATT&CK, or COBIT.
+Soft Skills:
+Strong analytical and problem-solving abilities.
+Excellent communication skills to convey technical information to non-technical stakeholders.
+Ability to work under pressure and manage multiple priorities."""
 
-resume_text = pdf_to_text('ak.pdf')
+resume_text = pdf_to_text("/Users/arunkaul/Desktop/SIH-AI-REPO/SIH-AI-REPO/marketing.pdf")
+job_description_sentences = text_to_sentences(job_description)
+resume_sentences = text_to_sentences(resume_text)
 
-scores = calculate_similarity_score(job_description, resume_text)
-print(scores)
+job_description_sentences_filtered = [remove_stop_words(sentence) for sentence in job_description_sentences]
+resume_sentences_filtered = [remove_stop_words(sentence) for sentence in resume_sentences]
+resume_sentences_filtered = [line for line in resume_sentences_filtered if len(line) > 20]
+
+print("Filtered Resume Lines: ", resume_sentences_filtered)
+
+line_similarities = calculate_max_line_similarity_parallel(job_description_sentences_filtered, resume_sentences_filtered)
+
+for i, (job_sentence, similarity) in enumerate(zip(job_description_sentences_filtered, line_similarities)):
+    print(f"Job Sentence {i+1}: {job_sentence}")
+    print(f"Maximum Similarity: {similarity:.4f}\n")
+
+average_similarity = sum(line_similarities) / len(line_similarities)
+print(f"Average Similarity: {average_similarity:.4f}")
