@@ -136,7 +136,9 @@ def print_output() :
 
 def generate_summary(emotions, text_segments, question) :
     prompt = f"""
-You have to judge the user's answer according to what they have spoken (text) and how they have spoken (emotions). The user does not know that the text has been divided into segments so just give a summary, give tips to the user about where and how they can improve.
+You have to judge the user's answer according to what they have spoken (text) and how they have spoken (emotions). The user does not know that the text has been divided into segments so just give a summary, give tips to the user about where and how they can improve. Then generate a score out of 10 for the user's response.
+
+When you have judged it, then create a suitable response to the question as if you were being interviewed.
 
 question : {question}
 
@@ -196,6 +198,7 @@ Top 3 emotions for segment 5:
     )
 
     print(chat_completion.choices[0].message.content)
+    print()
 
 def delete_files() :
     import os
@@ -209,7 +212,7 @@ async def measurer():
     await asyncio.gather(*tasks)  # Concurrently process segments
 
     stt_full()
-    print(generate_summary(emotions, text_segments, "Introduce yourself"))
+    generate_summary(emotions, text_segments, "Introduce yourself")
     print_output()
     delete_files()
 
