@@ -1,3 +1,4 @@
+import random
 import wave
 import pyaudio
 from pydub import AudioSegment, silence
@@ -21,6 +22,20 @@ CHANNELS = 1
 RATE = 44100
 RECORD_SECONDS = 30
 WAVE_OUTPUT_FILENAME = "output.wav"
+
+#Select Random Question
+
+
+def get_random_question():
+        with open("questions.txt", "r") as file:
+            questions = file.readlines()
+        return random.choice(questions).strip()
+
+
+question = get_random_question()
+print(question)
+
+
 
 # Open a new stream
 stream = p.open(format=FORMAT,
@@ -398,14 +413,16 @@ def print_output():
         for trait, score in segment_traits:
             print(f"  {trait}: {score:.3f}")
 
+# Run the async process
 async def measurer():
     tasks = [process_segment(segment, i) for i, segment in enumerate(audio_segments)]
     await asyncio.gather(*tasks)  # Concurrently process segments
 
     stt_full()
     print_output()
-    print(generate_summary(emotions, text_segments, "Introduce yourself"))
     delete_files()
+    print(generate_summary(emotions, text_segments, question))
+    
 
 # Run the async process
 asyncio.run(measurer())
