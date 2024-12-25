@@ -109,7 +109,6 @@ async def process_segment(segment, segment_index):
     # Print top 3 emotions for the segment
     current_emotions = []
     for emotion in top_3_emotions:
-        # print(f"{emotion['name']} : {emotion['score']}")
         current_emotions.append(f"{emotion['name']} : {emotion['score']}")
     
     emotions.append(current_emotions)
