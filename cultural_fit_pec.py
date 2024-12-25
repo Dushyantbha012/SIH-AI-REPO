@@ -25,10 +25,9 @@ WAVE_OUTPUT_FILENAME = "output.wav"
 
 #Select Random Question
 
-
 def get_random_question():
         with open("questions.txt", "r") as file:
-            questions = file.readlines()
+            questions = file.readlines()                                #NEW CODE ADDED
         return random.choice(questions).strip()
 
 
