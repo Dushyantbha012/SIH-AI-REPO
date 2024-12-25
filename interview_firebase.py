@@ -81,12 +81,13 @@ class InterviewAssistant:
             except sr.RequestError as e:
                 print(f"Could not request results from Google Speech Recognition service; {e}")
                 return None
-
-    def generate_question(self, context):
+    # DIFFICULTY LEVEL ADDED
+    def generate_question(self, context, difficulty="entry-level"):
         prompt = f"""
         Based on the project details in this resume: {self.resume}, and the previous questions asked: {context}, 
         create a concise and formal technical question related to the candidate's projects, ensuring it remains professional without any extra phrasing.
         Ask the question directly in less than 15 words.
+        Keep the level of the question : {difficulty}
         """
         chat_completion = self.client.chat.completions.create(
             messages=[
@@ -122,10 +123,12 @@ class InterviewAssistant:
     
     def conduct_interview(self):
         self.clear_database()
+        difficulty = input("Please select the difficulty level (entry-level, mid-level, senior-level): ") # NEW LINE ADDED
+        
         for _ in range(self.n_q):
             context_old = self.retrieve_all_q_a()
             print(context_old)
-            question = self.generate_question(context_old)
+            question = self.generate_question(context_old, difficulty)
             self.text_to_speech(question)
             audio_answer = self.record_answer()
             answer_text = self.convert_audio_to_text(audio_answer)
